@@ -1,0 +1,15 @@
+Common.Export=Export
+Common.Import=Import
+MainToadlet.ExportHistory=Export whole site history to fblob
+MainToadlet.ExportSingle=Export a single file to fblob
+MainToadled.ExportSite=Export a site to fblob
+MainToadlet.FileName=Local fblob file
+MainToadlet.FileURI=File URI
+MainToadlet.Import=Import a fblob
+MainToadlet.SiteURI=Site URI
+MainToadlet.title=Shoeshop
+Menu.Shoeshop.title=Shoeshop
+Menu.Shoeshop.tooltip=Utilities and helpers for sneakernet
+Plugin.Category.title=Shoeshop
+Plugin.Category.tooltip=Utilities and helpers for sneakernet
+End
