@@ -17,6 +17,7 @@ public class ShoeshopPlugin implements FredPlugin, FredPluginVersioned, FredPlug
 	private PluginL10n intl;
 	private WebInterface webInterface;
 	private PluginContext pluginContext;
+	private RequestManager requestManager;
 
 	public String getString(String key) {
 		return intl.getBase().getString(key);
@@ -55,6 +56,8 @@ public class ShoeshopPlugin implements FredPlugin, FredPluginVersioned, FredPlug
 	}
 
 	public void terminate() {
+		requestManager.kill();
+		requestManager = null;
 		webInterface.kill();
 		webInterface = null;
 		pluginContext = null;
@@ -67,10 +70,12 @@ public class ShoeshopPlugin implements FredPlugin, FredPluginVersioned, FredPlug
 		}
 
 		pluginContext = new PluginContext(pr);
+		requestManager = new RequestManager(pluginContext, intl);
 		webInterface = new WebInterface(pluginContext);
+
 		webInterface.addNavigationCategory(Constants.PLUGIN_URI+"/", Constants.PLUGIN_CATEGORY, Constants.PLUGIN_CATEGORYTOOLTIP, this);
 
-		MainToadlet mainToadlet = new MainToadlet(pluginContext, intl);
+		MainToadlet mainToadlet = new MainToadlet(pluginContext, intl, requestManager);
 		webInterface.registerVisible(mainToadlet, Constants.PLUGIN_CATEGORY, "Menu.Shoeshop.title", "Menu.Shoeshop.tooltip");
 
 	}
