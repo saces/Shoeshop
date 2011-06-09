@@ -20,7 +20,7 @@ public class InsertRequest extends AbstractRequest implements ClientPutCallback 
 	private final PluginContext _pluginContext;
 
 	public InsertRequest(String identifier, PluginContext pluginContext) {
-		super(identifier);
+		super(identifier, TYPE.INSERT);
 		_pluginContext = pluginContext;
 	}
 
@@ -34,7 +34,9 @@ public class InsertRequest extends AbstractRequest implements ClientPutCallback 
 				false, this, null, true, _pluginContext.clientCore.clientContext, null);
 		try {
 			put.start(false, null, _pluginContext.clientCore.clientContext);
+			setStatusRunning();
 		} catch (InsertException e) {
+			setStatusError(e);
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 			new Exception("TODO").printStackTrace();
@@ -43,7 +45,10 @@ public class InsertRequest extends AbstractRequest implements ClientPutCallback 
 
 	@Override
 	public void kill() {
-		put.cancel(null, _pluginContext.clientCore.clientContext);
+		if (put != null) {
+			put.cancel(null, _pluginContext.clientCore.clientContext);
+			put = null;
+		}
 	}
 
 	public void onGeneratedURI(FreenetURI uri, BaseClientPutter state, ObjectContainer container) {
@@ -55,17 +60,13 @@ public class InsertRequest extends AbstractRequest implements ClientPutCallback 
 	}
 
 	public void onSuccess(BaseClientPutter state, ObjectContainer container) {
-		// TODO Auto-generated method stub
-		new Exception("TODO").printStackTrace();
+		setStatusSuccess();
+		put = null;
 	}
 
-	public void onFailure(InsertException e, BaseClientPutter state,
-			ObjectContainer container) {
-		// TODO Auto-generated method stub
-		System.out.println(e.getLocalizedMessage());
-		System.out.println(e.getMode());
-		e.printStackTrace();
-		new Exception("TODO").printStackTrace();
+	public void onFailure(InsertException e, BaseClientPutter state, ObjectContainer container) {
+		setStatusError(e);
+		put = null;
 	}
 
 }

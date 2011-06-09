@@ -23,11 +23,14 @@ public class MainToadlet extends WebInterfaceToadlet {
 	private final PluginL10n _intl;
 	private final static String PARAM_FILENAME = "filename";
 	private final static String PARAM_URI = "key";
+	private final static String PARAM_IDENTIFIER = "identifier";
 	private final static String URI_WIDTH = "70";
 	private final static String CMD_SITEEXPORT = "siteexport";
 	private final static String CMD_SITEEXPORTEX = "siteexportex";
 	private final static String CMD_FILEEXPORT = "fileexport";
 	private final static String CMD_BLOBIMPORT = "blobimport";
+	private final static String CMD_CANCEL = "cancel";
+	private final static String CMD_REMOVE = "remove";
 
 	private final RequestManager _requestManager;
 
@@ -61,22 +64,44 @@ public class MainToadlet extends WebInterfaceToadlet {
 			return;
 		}
 
-		if (request.isPartSet(CMD_SITEEXPORT)) {
-			errors.add("TODO: site export");
-		} else if (request.isPartSet(CMD_SITEEXPORTEX)) {
-			errors.add("TODO: history export");
-		} else if (request.isPartSet(CMD_FILEEXPORT)) {
-			errors.add("TODO: File export");
-		} else if (request.isPartSet(CMD_BLOBIMPORT)) {
+		if (request.isPartSet(CMD_BLOBIMPORT)) {
 			final HTTPUploadedFile file = request.getUploadedFile("filename");
 			if (file == null || file.getFilename().trim().length() == 0) {
 				errors.add(_("Common.NoFileSelected"));
 			} else {
 				_requestManager.insertFBlob(file);
 			}
-		} else {
-			errors.add(_("Common.MalformedRequest"));
+			makePage(ctx, errors);
+			return;
 		}
+
+		// from here all request requires param 'identifier'
+		if (!request.isPartSet(PARAM_IDENTIFIER)) {
+			errors.add(_("Common.MalformedRequest"));
+			makePage(ctx, errors);
+			return;
+		}
+
+		String id = request.getPartAsString(PARAM_IDENTIFIER, 256);
+		if (!_requestManager.isValidIdentifier(id)) {
+			errors.add(_("Common.NoSuchIdentifier"));
+			makePage(ctx, errors);
+			return;
+		}
+
+		if (request.isPartSet(CMD_CANCEL)) {
+			_requestManager.cancelRequest(id);
+			makePage(ctx, errors);
+			return;
+		}
+
+		if (request.isPartSet(CMD_REMOVE)) {
+			_requestManager.removeRequest(id);
+			makePage(ctx, errors);
+			return;
+		}
+
+		errors.add(_("Common.MalformedRequest"));
 		makePage(ctx, errors);
 	}
 
@@ -137,10 +162,79 @@ public class MainToadlet extends WebInterfaceToadlet {
 			return;
 		}
 
+		HTMLNode table = parent.addChild("table");
+		HTMLNode tableHead = table.addChild("thead");
+		HTMLNode headRow = tableHead.addChild("tr");
+		HTMLNode nextTableCell = headRow.addChild("th");
+		nextTableCell.addChild("#", "\u00a0");
+		nextTableCell = headRow.addChild("th");
+		nextTableCell.addChild("#", _("MainToadlet.RequestTable.Type"));
+		nextTableCell = headRow.addChild("th");
+		nextTableCell.addChild("#", _("MainToadlet.RequestTable.Status"));
+		nextTableCell = headRow.addChild("th");
+		nextTableCell.addChild("#", _("MainToadlet.RequestTable.ID"));
+		nextTableCell = headRow.addChild("th");
+		nextTableCell.addChild("#", "\u00a0");
+		nextTableCell = headRow.addChild("th");
+		nextTableCell.addChild("#", _("MainToadlet.RequestTable.Progress"));
+
 		for (AbstractRequest req: _requestManager.getRequests()) {
-			parent.addChild("#", req.getRequestInfo());
-			parent.addChild("BR");
+			HTMLNode tableRow = table.addChild("tr");
+			tableRow.addChild(makeButtonCell(req));
+			tableRow.addChild(makeTypeCell(req));
+			tableRow.addChild(makeStatusCell(req));
+			tableRow.addChild(makeIDCell(req));
+			tableRow.addChild(makeEmptyCell());
+			tableRow.addChild(makeProgressCell(req));
 		}
+	}
+
+	private HTMLNode makeButtonCell(AbstractRequest req) {
+		HTMLNode cell = new HTMLNode("td");
+		HTMLNode form = pluginContext.pluginRespirator.addFormChild(cell, path(), "uriForm");
+		form.addChild("input", new String[] { "type", "name", "value" }, new String[] { "hidden", PARAM_IDENTIFIER, req.getID() });
+		if (req.isRunning()) {
+			form.addChild("input", new String[] { "type", "name", "value" }, new String[] { "submit", CMD_CANCEL, _("Common.Cancel") });
+		} else {
+			form.addChild("input", new String[] { "type", "name", "value" }, new String[] { "submit", CMD_REMOVE, _("Common.Remove") });
+		}
+		return cell;
+	}
+
+	private HTMLNode makeTypeCell(AbstractRequest req) {
+		HTMLNode cell = new HTMLNode("td");
+		cell.addChild("#", _("MainToadlet.Requests.Type." + req.getType()));
+		return cell;
+	}
+
+	private HTMLNode makeStatusCell(AbstractRequest req) {
+		HTMLNode cell = new HTMLNode("td");
+		cell.addChild("#", _("MainToadlet.Requests.Status." + req.getStatus()));
+		return cell;
+	}
+
+	private HTMLNode makeIDCell(AbstractRequest req) {
+		HTMLNode cell = new HTMLNode("td");
+		cell.addChild("#", req.getID());
+		return cell;
+	}
+
+	private HTMLNode makeProgressCell(AbstractRequest req) {
+		HTMLNode cell = new HTMLNode("td");
+		if (req.isRunning()) {
+			cell.addChild("#", req.getRequestInfo());
+		} else if (req.isError()) {
+			cell.addChild("#", req.getErrorInfo());
+		} else {
+			cell.addChild("#", "\\o/");
+		}
+		return cell;
+	}
+
+	private HTMLNode makeEmptyCell() {
+		HTMLNode cell = new HTMLNode("td");
+		cell.addChild("#", "\u00a0");
+		return cell;
 	}
 
 }

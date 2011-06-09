@@ -7,7 +7,6 @@ import de.saces.fnplugins.Shoeshop.requests.AbstractRequest;
 import de.saces.fnplugins.Shoeshop.requests.InsertRequest;
 
 import freenet.l10n.PluginL10n;
-import freenet.support.HTMLNode;
 import freenet.support.api.HTTPUploadedFile;
 import freenet.support.plugins.helpers1.PluginContext;
 
@@ -43,10 +42,22 @@ public class RequestManager {
 	}
 
 	public void insertFBlob(HTTPUploadedFile file) {
-		final String id = "↑ ["+file.getFilename()+"] ("+System.currentTimeMillis()+')';
+		final String id = file.getFilename()+'('+System.currentTimeMillis()+')';
 		InsertRequest ir = new InsertRequest(id, _pluginContext);
 		_requests.put(id, ir);
 		ir.start(file.getData());
+	}
+
+	public boolean isValidIdentifier(String id) {
+		return _requests.containsKey(id);
+	}
+
+	public void cancelRequest(String id) {
+		_requests.get(id).kill();
+	}
+
+	public void removeRequest(String id) {
+		_requests.remove(id);
 	}
 
 }
