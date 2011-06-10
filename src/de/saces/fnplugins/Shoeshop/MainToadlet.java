@@ -1,20 +1,25 @@
 package de.saces.fnplugins.Shoeshop;
 
 import java.io.IOException;
+import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.LinkedList;
 import java.util.List;
 
 import de.saces.fnplugins.Shoeshop.requests.AbstractRequest;
+import freenet.client.async.BinaryBlob;
 import freenet.clients.http.PageNode;
 import freenet.clients.http.RedirectException;
 import freenet.clients.http.ToadletContext;
 import freenet.clients.http.ToadletContextClosedException;
+import freenet.keys.FreenetURI;
 import freenet.l10n.PluginL10n;
 import freenet.support.HTMLNode;
+import freenet.support.api.Bucket;
 import freenet.support.api.HTTPRequest;
 import freenet.support.api.HTTPUploadedFile;
+import freenet.support.io.BucketTools;
 import freenet.support.plugins.helpers1.PluginContext;
 import freenet.support.plugins.helpers1.WebInterfaceToadlet;
 
@@ -31,6 +36,7 @@ public class MainToadlet extends WebInterfaceToadlet {
 	private final static String CMD_BLOBIMPORT = "blobimport";
 	private final static String CMD_CANCEL = "cancel";
 	private final static String CMD_REMOVE = "remove";
+	private final static String CMD_GRAB = "grab";
 
 	private final RequestManager _requestManager;
 
@@ -56,6 +62,11 @@ public class MainToadlet extends WebInterfaceToadlet {
 		makePage(ctx, null);
 	}
 
+	private static class MethodHandlerError extends Exception {
+		private static final long serialVersionUID = 1L;
+	}
+
+	@SuppressWarnings("unused")
 	public void handleMethodPOST(URI uri, HTTPRequest request, final ToadletContext ctx) throws ToadletContextClosedException, IOException, RedirectException, URISyntaxException {
 		List<String> errors = new LinkedList<String>();
 
@@ -64,6 +75,26 @@ public class MainToadlet extends WebInterfaceToadlet {
 			return;
 		}
 
+		Bucket result = null;
+		try {
+			result = innerHandlePost(request, errors);
+		} catch (MethodHandlerError e) {
+			// ignore
+		}
+
+		if (result == null) {
+			makePage(ctx, errors);
+		} else {
+			// copy the bucket, the origin data should not be freed here.
+			Bucket tmp = ctx.getBucketFactory().makeBucket(result.size());
+			BucketTools.copy(result, tmp);
+			result = null;
+			ctx.sendReplyHeaders(200, "OK", null, BinaryBlob.MIME_TYPE, tmp.size());
+			ctx.writeData(tmp);
+		}
+	}
+
+	private Bucket innerHandlePost(HTTPRequest request, List<String> errors) throws MethodHandlerError {
 		if (request.isPartSet(CMD_BLOBIMPORT)) {
 			final HTTPUploadedFile file = request.getUploadedFile("filename");
 			if (file == null || file.getFilename().trim().length() == 0) {
@@ -71,38 +102,60 @@ public class MainToadlet extends WebInterfaceToadlet {
 			} else {
 				_requestManager.insertFBlob(file);
 			}
-			makePage(ctx, errors);
-			return;
+			return null;
 		}
+		if (request.isPartSet(CMD_FILEEXPORT)) {
+			FreenetURI uri = checkParamURI(request, errors);
+			_requestManager.exportFile(uri);
+			return null;
+		}
+		if (request.isPartSet(CMD_CANCEL)) {
+			String id = checkParamID(request, errors);
+			_requestManager.cancelRequest(id);
+			return null;
+		}
+		if (request.isPartSet(CMD_REMOVE)) {
+			String id = checkParamID(request, errors);
+			_requestManager.removeRequest(id);
+			return null;
+		}
+		if (request.isPartSet(CMD_GRAB)) {
+			String id = checkParamID(request, errors);
+			return _requestManager.grabData(id);
+		}
+		errors.add(_("Common.MalformedRequest"));
+		return null;
+	}
 
-		// from here all request requires param 'identifier'
+	private FreenetURI checkParamURI(HTTPRequest request, List<String> errors) throws MethodHandlerError {
+		if (!request.isPartSet(PARAM_URI)) {
+			errors.add(_("Common.MalformedRequest"));
+			throw new MethodHandlerError();
+		}
+		@SuppressWarnings("deprecation")
+		String uri = request.getPartAsString(PARAM_URI, 1024);
+		FreenetURI furi;
+		try {
+			furi = new FreenetURI(uri);
+		} catch (MalformedURLException e) {
+			errors.add(e.getLocalizedMessage());
+			throw new MethodHandlerError();
+		}
+		return furi;
+	}
+
+	private String checkParamID(HTTPRequest request, List<String> errors) throws MethodHandlerError {
 		if (!request.isPartSet(PARAM_IDENTIFIER)) {
 			errors.add(_("Common.MalformedRequest"));
-			makePage(ctx, errors);
-			return;
+			throw new MethodHandlerError();
 		}
-
-		String id = request.getPartAsString(PARAM_IDENTIFIER, 256);
+		@SuppressWarnings("deprecation")
+		String id = request.getPartAsString(PARAM_IDENTIFIER, 1024);
 		if (!_requestManager.isValidIdentifier(id)) {
 			errors.add(_("Common.NoSuchIdentifier"));
-			makePage(ctx, errors);
-			return;
+			throw new MethodHandlerError();
 		}
-
-		if (request.isPartSet(CMD_CANCEL)) {
-			_requestManager.cancelRequest(id);
-			makePage(ctx, errors);
-			return;
-		}
-
-		if (request.isPartSet(CMD_REMOVE)) {
-			_requestManager.removeRequest(id);
-			makePage(ctx, errors);
-			return;
-		}
-
-		errors.add(_("Common.MalformedRequest"));
-		makePage(ctx, errors);
+		return id;
 	}
 
 	private void makePage(ToadletContext ctx, List<String> errors) throws ToadletContextClosedException, IOException {
@@ -135,9 +188,9 @@ public class MainToadlet extends WebInterfaceToadlet {
 		HTMLNode box12bForm = pluginContext.pluginRespirator.addFormChild(box12b, path(), "uriForm");
 		box12bForm.addChild("#", _("MainToadlet.FileURI"));
 		box12bForm.addChild("#", "\u00a0 ");
-		box12bForm.addChild("input", new String[] { "type", "name", "size", "disabled" }, new String[] { "text", PARAM_URI, URI_WIDTH, "disabled" });
+		box12bForm.addChild("input", new String[] { "type", "name", "size" }, new String[] { "text", PARAM_URI, URI_WIDTH });
 		box12bForm.addChild("#", "\u00a0");
-		box12bForm.addChild("input", new String[] { "type", "name", "value", "disabled" }, new String[] { "submit", CMD_FILEEXPORT, _("Common.Export"), "disabled" });
+		box12bForm.addChild("input", new String[] { "type", "name", "value" }, new String[] { "submit", CMD_FILEEXPORT, _("Common.Export") });
 
 		HTMLNode box13 = pluginContext.pageMaker.getInfobox("infobox-information", _("MainToadlet.Import"), contentNode);
 		HTMLNode box13Form = pluginContext.pluginRespirator.addFormChild(box13, path(), "uriForm");
@@ -153,7 +206,6 @@ public class MainToadlet extends WebInterfaceToadlet {
 		HTMLNode flattrBox = pluginContext.pageMaker.getInfobox("infobox-information", "Flattr", contentNode);
 		flattrBox.addChild("a", "href", "/?_CHECKED_HTTP_=https://flattr.com/thing/247369/saces-on-Flattr", "Flattr");
 		writeHTMLReply(ctx, 200, "OK", outer.generate());
-
 	}
 
 	void createStatusTables(HTMLNode parent) {
@@ -178,18 +230,22 @@ public class MainToadlet extends WebInterfaceToadlet {
 		nextTableCell = headRow.addChild("th");
 		nextTableCell.addChild("#", _("MainToadlet.RequestTable.Progress"));
 
-		for (AbstractRequest req: _requestManager.getRequests()) {
+		for (AbstractRequest<?> req: _requestManager.getRequests()) {
 			HTMLNode tableRow = table.addChild("tr");
 			tableRow.addChild(makeButtonCell(req));
 			tableRow.addChild(makeTypeCell(req));
 			tableRow.addChild(makeStatusCell(req));
 			tableRow.addChild(makeIDCell(req));
-			tableRow.addChild(makeEmptyCell());
+			if (req.isTypeInsert() || !req.isDone()) {
+				tableRow.addChild(makeEmptyCell());
+			} else {
+				tableRow.addChild(makeGrabCell(req));
+			}
 			tableRow.addChild(makeProgressCell(req));
 		}
 	}
 
-	private HTMLNode makeButtonCell(AbstractRequest req) {
+	private HTMLNode makeButtonCell(AbstractRequest<?> req) {
 		HTMLNode cell = new HTMLNode("td");
 		HTMLNode form = pluginContext.pluginRespirator.addFormChild(cell, path(), "uriForm");
 		form.addChild("input", new String[] { "type", "name", "value" }, new String[] { "hidden", PARAM_IDENTIFIER, req.getID() });
@@ -201,25 +257,33 @@ public class MainToadlet extends WebInterfaceToadlet {
 		return cell;
 	}
 
-	private HTMLNode makeTypeCell(AbstractRequest req) {
+	private HTMLNode makeGrabCell(AbstractRequest<?> req) {
+		HTMLNode cell = new HTMLNode("td");
+		HTMLNode form = pluginContext.pluginRespirator.addFormChild(cell, path(), "uriForm");
+		form.addChild("input", new String[] { "type", "name", "value" }, new String[] { "hidden", PARAM_IDENTIFIER, req.getID() });
+		form.addChild("input", new String[] { "type", "name", "value" }, new String[] { "submit", CMD_GRAB, _("Common.Grab") });
+		return cell;
+	}
+
+	private HTMLNode makeTypeCell(AbstractRequest<?> req) {
 		HTMLNode cell = new HTMLNode("td");
 		cell.addChild("#", _("MainToadlet.Requests.Type." + req.getType()));
 		return cell;
 	}
 
-	private HTMLNode makeStatusCell(AbstractRequest req) {
+	private HTMLNode makeStatusCell(AbstractRequest<?> req) {
 		HTMLNode cell = new HTMLNode("td");
 		cell.addChild("#", _("MainToadlet.Requests.Status." + req.getStatus()));
 		return cell;
 	}
 
-	private HTMLNode makeIDCell(AbstractRequest req) {
+	private HTMLNode makeIDCell(AbstractRequest<?> req) {
 		HTMLNode cell = new HTMLNode("td");
 		cell.addChild("#", req.getID());
 		return cell;
 	}
 
-	private HTMLNode makeProgressCell(AbstractRequest req) {
+	private HTMLNode makeProgressCell(AbstractRequest<?> req) {
 		HTMLNode cell = new HTMLNode("td");
 		if (req.isRunning()) {
 			cell.addChild("#", req.getRequestInfo());
@@ -236,5 +300,4 @@ public class MainToadlet extends WebInterfaceToadlet {
 		cell.addChild("#", "\u00a0");
 		return cell;
 	}
-
 }

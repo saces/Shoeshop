@@ -19,10 +19,12 @@ public class ShoeshopPlugin implements FredPlugin, FredPluginVersioned, FredPlug
 	private PluginContext pluginContext;
 	private RequestManager requestManager;
 
+	@Override
 	public String getString(String key) {
 		return intl.getBase().getString(key);
 	}
 
+	@Override
 	public void setLanguage(LANGUAGE newLanguage) {
 		if (intl == null) {
 			intl = new PluginL10n(this, newLanguage);
@@ -31,30 +33,37 @@ public class ShoeshopPlugin implements FredPlugin, FredPluginVersioned, FredPlug
 		intl.getBase().setLanguage(newLanguage);
 	}
 
+	@Override
 	public long getRealVersion() {
 		return Version.getRealVersion();
 	}
 
+	@Override
 	public String getVersion() {
 		return Version.getVersion();
 	}
 
+	@Override
 	public String getL10nFilesBasePath() {
 		return Constants.L10N_BASEPATH;
 	}
 
+	@Override
 	public String getL10nFilesMask() {
 		return Constants.L10N_FILEMASK;
 	}
 
+	@Override
 	public String getL10nOverrideFilesMask() {
 		return Constants.L10N_OVERRIDEFILEMASK;
 	}
 
+	@Override
 	public ClassLoader getPluginClassLoader() {
 		return this.getClass().getClassLoader();
 	}
 
+	@Override
 	public void terminate() {
 		requestManager.kill();
 		requestManager = null;
@@ -64,10 +73,13 @@ public class ShoeshopPlugin implements FredPlugin, FredPluginVersioned, FredPlug
 		intl = null;
 	}
 
+	@Override
 	public void runPlugin(PluginRespirator pr) {
 		if (intl == null) {
 			intl = new PluginL10n(this);
 		}
+
+		L10nableError.setL10n(intl.getBase());
 
 		pluginContext = new PluginContext(pr);
 		requestManager = new RequestManager(pluginContext, intl);

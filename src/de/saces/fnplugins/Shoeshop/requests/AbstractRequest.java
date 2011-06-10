@@ -9,10 +9,12 @@ import freenet.client.events.SplitfileProgressEvent;
 import freenet.node.RequestClient;
 import freenet.support.api.Bucket;
 
-public abstract class AbstractRequest implements ClientEventListener, RequestClient {
+public abstract class AbstractRequest<T> implements ClientEventListener, RequestClient {
+
+	public enum STATUS { NONE, RUNNING, DONE, ERROR };
+	public enum TYPE { FILE, SITE, INSERT };
 
 	protected SplitfileProgressEvent lastProgress;
-	public abstract void kill();
 	private final String _identifier;
 	private Exception _lastError;
 
@@ -24,31 +26,36 @@ public abstract class AbstractRequest implements ClientEventListener, RequestCli
 		_type = type;
 	}
 
-	public enum STATUS { NONE, RUNNING, DONE, ERROR };
-	public enum TYPE { FILE, SITE, INSERT };
+	public abstract void kill();
+	public abstract void start(T param);
+	public abstract Bucket getResult();
 
-	public abstract void start(Bucket data);
-
+	@Override
 	public void onRemoveEventProducer(ObjectContainer container) {
 		new Exception("TODO").printStackTrace();
 	}
 
+	@Override
 	public void receive(ClientEvent ce, ObjectContainer maybeContainer, ClientContext context) {
 		if (ce instanceof SplitfileProgressEvent) {
 			lastProgress = (SplitfileProgressEvent) ce;
 			return;
 		}
-		new Exception("TODO: "+ce.getDescription()).printStackTrace();
+		//System.out.println(ce);
+		//new Exception("TODO: "+ce.getDescription()).printStackTrace();
 	}
 
+	@Override
 	public boolean persistent() {
 		return false;
 	}
 
+	@Override
 	public void removeFrom(ObjectContainer container) {
 		throw new UnsupportedOperationException();
 	}
 
+	@Override
 	public boolean realTimeFlag() {
 		return true;
 	}
@@ -65,6 +72,14 @@ public abstract class AbstractRequest implements ClientEventListener, RequestCli
 	}
 
 	void setStatusRunning() {
+		if (status != STATUS.NONE) {
+			if (status == STATUS.ERROR) {
+				// timing/flow problem, ignore
+				return;
+			}
+			new Exception("TODO").printStackTrace();
+			return;
+		}
 		status = STATUS.RUNNING;
 	}
 
@@ -99,5 +114,13 @@ public abstract class AbstractRequest implements ClientEventListener, RequestCli
 
 	public boolean isError() {
 		return status == STATUS.ERROR;
+	}
+
+	public boolean isTypeInsert() {
+		return _type == TYPE.INSERT;
+	}
+
+	public boolean isDone() {
+		return status == STATUS.DONE;
 	}
 }
