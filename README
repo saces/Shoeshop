@@ -1,2 +1,15 @@
 Shoeshop
  A plugin for freenet
+
+Known Issues
+------------
+
+### stable node 1377
+
+Inserts are working, but due a bug you wont see progress.
+Fixed upstream (grab/pick 3e66ed5), in theory 1378 should include this ;)
+
+### Konqueror+WebKit
+
+Bah. With 4.6.2 / 4.6.3 I got some html page saved instead the expected fblob.
+Switch Konqueror to use KHtml, this should work.
