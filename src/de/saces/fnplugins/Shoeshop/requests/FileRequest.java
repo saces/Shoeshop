@@ -7,6 +7,7 @@ import com.db4o.ObjectContainer;
 import freenet.client.FetchContext;
 import freenet.client.FetchException;
 import freenet.client.FetchResult;
+import freenet.client.async.BinaryBlobWriter;
 import freenet.client.async.ClientGetCallback;
 import freenet.client.async.ClientGetter;
 import freenet.keys.FreenetURI;
@@ -46,7 +47,7 @@ public class FileRequest extends AbstractRequest<FreenetURI> implements ClientGe
 			_result = null;
 			return;
 		}
-		_get = new ClientGetter(this, uri, fCtx, RequestStarter.BULK_SPLITFILE_PRIORITY_CLASS, this, null, _result);
+		_get = new ClientGetter(this, uri, fCtx, RequestStarter.BULK_SPLITFILE_PRIORITY_CLASS, this, null, new BinaryBlobWriter(_result));
 		try {
 			_get.start(null, _pluginContext.clientCore.clientContext);
 			setStatusRunning();
