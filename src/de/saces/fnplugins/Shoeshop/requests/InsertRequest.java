@@ -32,7 +32,7 @@ public class InsertRequest extends AbstractRequest<Bucket> implements ClientPutC
 		iCtx.maxInsertRetries = 2;
 
 		_put = new ClientPutter(this, data, FreenetURI.EMPTY_CHK_URI, null, iCtx, RequestStarter.BULK_SPLITFILE_PRIORITY_CLASS, false,
-				false, this, null, true, _pluginContext.clientCore.clientContext, null);
+				false, this, null, true, _pluginContext.clientCore.clientContext, null, 0);
 		try {
 			_put.start(false, null, _pluginContext.clientCore.clientContext);
 			setStatusRunning();
@@ -83,6 +83,12 @@ public class InsertRequest extends AbstractRequest<Bucket> implements ClientPutC
 	@Override
 	public Bucket getResult() {
 		throw new UnsupportedOperationException();
+	}
+
+	@Override
+	public void onGeneratedMetadata(Bucket metadata, BaseClientPutter state,
+			ObjectContainer container) {
+		// TODO Auto-generated method stub
 	}
 
 }

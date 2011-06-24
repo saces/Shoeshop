@@ -47,7 +47,7 @@ public class FileRequest extends AbstractRequest<FreenetURI> implements ClientGe
 			_result = null;
 			return;
 		}
-		_get = new ClientGetter(this, uri, fCtx, RequestStarter.BULK_SPLITFILE_PRIORITY_CLASS, this, null, new BinaryBlobWriter(_result));
+		_get = new ClientGetter(this, uri, fCtx, RequestStarter.BULK_SPLITFILE_PRIORITY_CLASS, this, null, new BinaryBlobWriter(_result), null);
 		try {
 			_get.start(null, _pluginContext.clientCore.clientContext);
 			setStatusRunning();
