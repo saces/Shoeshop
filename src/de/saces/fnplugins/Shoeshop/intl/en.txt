@@ -10,6 +10,7 @@ Errors.NoFblobFile=Not a valid Fblob file
 HTTP.403.title=Forbidden
 HTTP.404.description=The URI ${URI} was not found.
 HTTP.404.title=Not found
+MainToadlet.Donate=Donate
 MainToadlet.ExportHistory=Export whole site history to fblob
 MainToadlet.ExportSingle=Export a single file to fblob
 MainToadlet.ExportSite=Export a site to fblob

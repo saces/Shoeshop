@@ -9,6 +9,7 @@ import java.util.List;
 
 import de.saces.fnplugins.Shoeshop.requests.AbstractRequest;
 import freenet.client.async.BinaryBlob;
+import freenet.clients.http.InfoboxNode;
 import freenet.clients.http.PageNode;
 import freenet.clients.http.RedirectException;
 import freenet.clients.http.ToadletContext;
@@ -168,44 +169,98 @@ public class MainToadlet extends WebInterfaceToadlet {
 			errors.clear();
 		}
 
-		HTMLNode box12 = pluginContext.pageMaker.getInfobox("infobox-information", _("MainToadlet.ExportSite"), contentNode);
-		HTMLNode box12Form = pluginContext.pluginRespirator.addFormChild(box12, path(), "uriForm");
-		box12Form.addChild("#", _("MainToadlet.SiteURI"));
-		box12Form.addChild("#", "\u00a0");
-		box12Form.addChild("input", new String[] { "type", "name", "size", "disabled" }, new String[] { "text", PARAM_URI, URI_WIDTH, "disabled" });
-		box12Form.addChild("#", "\u00a0");
-		box12Form.addChild("input", new String[] { "type", "name", "value", "disabled" }, new String[] { "submit", CMD_SITEEXPORT, _("Common.Export"), "disabled" });
+		contentNode.addChild(createExportSiteBox());
+		contentNode.addChild(createExportHistoryBox());
+		contentNode.addChild(createExportSingleBox());
+		contentNode.addChild(createImportBox());
+		contentNode.addChild(createRequestBox());
+		contentNode.addChild(createDonateBox());
 
-		HTMLNode box12a = pluginContext.pageMaker.getInfobox("infobox-information", _("MainToadlet.ExportHistory"), contentNode);
-		HTMLNode box12aForm = pluginContext.pluginRespirator.addFormChild(box12a, path(), "uriForm");
-		box12aForm.addChild("#", _("MainToadlet.SiteURI"));
-		box12aForm.addChild("#", "\u00a0 ");
-		box12aForm.addChild("input", new String[] { "type", "name", "size", "disabled" }, new String[] { "text", PARAM_URI, URI_WIDTH, "disabled" });
-		box12aForm.addChild("#", "\u00a0");
-		box12aForm.addChild("input", new String[] { "type", "name", "value", "disabled" }, new String[] { "submit", CMD_SITEEXPORTEX, _("Common.Export"), "disabled" });
-
-		HTMLNode box12b = pluginContext.pageMaker.getInfobox("infobox-information", _("MainToadlet.ExportSingle"), contentNode);
-		HTMLNode box12bForm = pluginContext.pluginRespirator.addFormChild(box12b, path(), "uriForm");
-		box12bForm.addChild("#", _("MainToadlet.FileURI"));
-		box12bForm.addChild("#", "\u00a0 ");
-		box12bForm.addChild("input", new String[] { "type", "name", "size" }, new String[] { "text", PARAM_URI, URI_WIDTH });
-		box12bForm.addChild("#", "\u00a0");
-		box12bForm.addChild("input", new String[] { "type", "name", "value" }, new String[] { "submit", CMD_FILEEXPORT, _("Common.Export") });
-
-		HTMLNode box13 = pluginContext.pageMaker.getInfobox("infobox-information", _("MainToadlet.Import"), contentNode);
-		HTMLNode box13Form = pluginContext.pluginRespirator.addFormChild(box13, path(), "uriForm");
-		box13Form.addChild("#", _("MainToadlet.FileName"));
-		box13Form.addChild("#", "\u00a0 ");
-		box13Form.addChild("input", new String[] { "type", "name", "size" }, new String[] { "file", PARAM_FILENAME, URI_WIDTH });
-		box13Form.addChild("#", "\u00a0");
-		box13Form.addChild("input", new String[] { "type", "name", "value" }, new String[] { "submit", CMD_BLOBIMPORT, _("Common.Import") });
-
-		HTMLNode requestBox = pluginContext.pageMaker.getInfobox("infobox-information", _("MainToadlet.Requests"), contentNode);
-		createStatusTables(requestBox);
-
-		HTMLNode flattrBox = pluginContext.pageMaker.getInfobox("infobox-information", "Flattr", contentNode);
-		flattrBox.addChild("a", "href", "/?_CHECKED_HTTP_=https://flattr.com/thing/247369/saces-on-Flattr", "Flattr");
 		writeHTMLReply(ctx, 200, "OK", outer.generate());
+	}
+
+	private InfoboxNode createBox(String title) {
+		return pluginContext.pageMaker.getInfobox(title);
+	}
+
+	private HTMLNode createExportSiteBox() {
+		InfoboxNode box = createBox(_("MainToadlet.ExportSite"));
+		HTMLNode outerBox = box.outer;
+		HTMLNode boxContent = box.content;
+		HTMLNode form = pluginContext.pluginRespirator.addFormChild(boxContent, path(), "uriForm");
+		form.addChild("#", _("MainToadlet.SiteURI"));
+		form.addChild("#", "\u00a0");
+		form.addChild("input", new String[] { "type", "name", "size", "disabled" }, new String[] { "text", PARAM_URI, URI_WIDTH, "disabled" });
+		form.addChild("#", "\u00a0");
+		form.addChild("input", new String[] { "type", "name", "value", "disabled" }, new String[] { "submit", CMD_SITEEXPORT, _("Common.Export"), "disabled" });
+		return outerBox;
+	}
+
+	private HTMLNode createExportHistoryBox() {
+		InfoboxNode box = createBox(_("MainToadlet.ExportHistory"));
+		HTMLNode outerBox = box.outer;
+		HTMLNode boxContent = box.content;
+		HTMLNode form = pluginContext.pluginRespirator.addFormChild(boxContent, path(), "uriForm");
+		form.addChild("#", _("MainToadlet.SiteURI"));
+		form.addChild("#", "\u00a0 ");
+		form.addChild("input", new String[] { "type", "name", "size", "disabled" }, new String[] { "text", PARAM_URI, URI_WIDTH, "disabled" });
+		form.addChild("#", "\u00a0");
+		form.addChild("input", new String[] { "type", "name", "value", "disabled" }, new String[] { "submit", CMD_SITEEXPORTEX, _("Common.Export"), "disabled" });
+		return outerBox;
+	}
+
+	private HTMLNode createExportSingleBox() {
+		InfoboxNode box = createBox(_("MainToadlet.ExportSingle"));
+		HTMLNode outerBox = box.outer;
+		HTMLNode boxContent = box.content;
+		HTMLNode form = pluginContext.pluginRespirator.addFormChild(boxContent, path(), "uriForm");
+		form.addChild("#", _("MainToadlet.FileURI"));
+		form.addChild("#", "\u00a0 ");
+		form.addChild("input", new String[] { "type", "name", "size" }, new String[] { "text", PARAM_URI, URI_WIDTH });
+		form.addChild("#", "\u00a0");
+		form.addChild("input", new String[] { "type", "name", "value" }, new String[] { "submit", CMD_FILEEXPORT, _("Common.Export") });
+		return outerBox;
+	}
+
+	private HTMLNode createImportBox() {
+		InfoboxNode box = createBox(_("MainToadlet.Import"));
+		HTMLNode outerBox = box.outer;
+		HTMLNode boxContent = box.content;
+		HTMLNode form = pluginContext.pluginRespirator.addFormChild(boxContent, path(), "uriForm");
+		form.addChild("#", _("MainToadlet.FileName"));
+		form.addChild("#", "\u00a0 ");
+		form.addChild("input", new String[] { "type", "name", "size" }, new String[] { "file", PARAM_FILENAME, URI_WIDTH });
+		form.addChild("#", "\u00a0");
+		form.addChild("input", new String[] { "type", "name", "value" }, new String[] { "submit", CMD_BLOBIMPORT, _("Common.Import") });
+		return outerBox;
+	}
+
+	private HTMLNode createRequestBox() {
+		InfoboxNode box = createBox(_("MainToadlet.Requests"));
+		HTMLNode outerBox = box.outer;
+		HTMLNode boxContent = box.content;
+		createStatusTables(boxContent);
+		return outerBox;
+	}
+
+	private HTMLNode createDonateBox() {
+		InfoboxNode box = createBox(_("MainToadlet.Donate"));
+		HTMLNode outerBox = box.outer;
+		HTMLNode boxContent = box.content;
+		HTMLNode flattr = new HTMLNode("p");
+		HTMLNode flattrlink = flattr.addChild(new HTMLNode("a", "href", "/external-link/?_CHECKED_HTTP_=http://flattr.com/thing/376087/Shoeshop"));
+		flattrlink.addChild(new HTMLNode("img", new String[] {"src", "align"}, new String[] {"images/flattr-badge-large.png", "middle"}));
+		HTMLNode small = new HTMLNode("small");
+		small.addChild("#", "\u00a0http://flattr.com/thing/376087/Shoeshop");
+		flattr.addChild(small);
+		boxContent.addChild(flattr);
+
+		HTMLNode btc = new HTMLNode("p");
+		btc.addChild(new HTMLNode("img", new String[] {"src", "align"}, new String[] {"images/th_Bitcoinorg_100x35_new.png", "middle"}));
+		btc.addChild("#", "\u00a01L4QP8hd9ztVXLinabXtdgyetBuRJ8dsCF");
+		boxContent.addChild(btc);
+
+		return outerBox;
 	}
 
 	void createStatusTables(HTMLNode parent) {
