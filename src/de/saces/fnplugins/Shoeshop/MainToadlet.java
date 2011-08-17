@@ -168,7 +168,7 @@ public class MainToadlet extends WebInterfaceToadlet {
 			errors.clear();
 		}
 
-		HTMLNode box12 = pluginContext.pageMaker.getInfobox("infobox-information", _("MainToadled.ExportSite"), contentNode);
+		HTMLNode box12 = pluginContext.pageMaker.getInfobox("infobox-information", _("MainToadlet.ExportSite"), contentNode);
 		HTMLNode box12Form = pluginContext.pluginRespirator.addFormChild(box12, path(), "uriForm");
 		box12Form.addChild("#", _("MainToadlet.SiteURI"));
 		box12Form.addChild("#", "\u00a0");
