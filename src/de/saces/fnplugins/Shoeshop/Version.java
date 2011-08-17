@@ -14,9 +14,9 @@ public class Version {
 	 * etc, at a minimum any build inserted into auto-update should have a unique
 	 * version.
 	 */
-	private static final long version = 0;
+	private static final long version = 1;
 
-	private static final String longVersionString = "0.0.0α " + gitRevision;
+	private static final String longVersionString = "0.0.1 " + gitRevision;
 
 	public static String getVersion() {
 		return longVersionString;
