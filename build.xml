@@ -125,12 +125,13 @@
 				<include name="**/*.txt"/>
 			</fileset>
 			<fileset dir="${build}/"/>
+			<fileset dir="rez/" />
 		</jar>
 		<zip destfile="${dist}/Shoeshop-src.zip" filesonly="true" compress="true">
 			<zipfileset dir="."
 				prefix = ""
 				excludes=".*"
-				includes="src/**/* build.xml README" />
+				includes="src/**/* rez/**/* build.xml README" />
 		</zip>
 	</target>
 

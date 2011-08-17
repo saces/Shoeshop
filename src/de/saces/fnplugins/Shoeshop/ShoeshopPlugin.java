@@ -90,6 +90,12 @@ public class ShoeshopPlugin implements FredPlugin, FredPluginVersioned, FredPlug
 		MainToadlet mainToadlet = new MainToadlet(pluginContext, intl, requestManager);
 		webInterface.registerVisible(mainToadlet, Constants.PLUGIN_CATEGORY, "Menu.Shoeshop.title", "Menu.Shoeshop.tooltip");
 
+		// Invisible pages
+		StaticToadlet cssToadlet = new StaticToadlet(pluginContext, Constants.PLUGIN_URI, "css", "/data/css/", "text/css", intl);
+		webInterface.registerInvisible(cssToadlet);
+		StaticToadlet picToadlet = new StaticToadlet(pluginContext, Constants.PLUGIN_URI, "images", "/data/images/", "image/png", intl);
+		webInterface.registerInvisible(picToadlet);
+
 	}
 
 }
