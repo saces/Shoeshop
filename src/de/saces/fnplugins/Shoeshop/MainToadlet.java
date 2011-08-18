@@ -17,6 +17,7 @@ import freenet.clients.http.ToadletContextClosedException;
 import freenet.keys.FreenetURI;
 import freenet.l10n.PluginL10n;
 import freenet.support.HTMLNode;
+import freenet.support.Logger;
 import freenet.support.api.Bucket;
 import freenet.support.api.HTTPRequest;
 import freenet.support.api.HTTPUploadedFile;
@@ -25,6 +26,12 @@ import freenet.support.plugins.helpers1.PluginContext;
 import freenet.support.plugins.helpers1.WebInterfaceToadlet;
 
 public class MainToadlet extends WebInterfaceToadlet {
+
+	private static volatile boolean logDEBUG;
+
+	static {
+		Logger.registerClass(MainToadlet.class);
+	}
 
 	private final PluginL10n _intl;
 	private final static String PARAM_FILENAME = "filename";
@@ -80,7 +87,7 @@ public class MainToadlet extends WebInterfaceToadlet {
 		try {
 			result = innerHandlePost(request, errors);
 		} catch (MethodHandlerError e) {
-			// ignore
+			if (logDEBUG) Logger.debug(this, "MethodHandlerError", e);
 		}
 
 		if (result == null) {
