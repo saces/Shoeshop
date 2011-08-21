@@ -21,6 +21,7 @@ MainToadlet.Requests=Request queue
 MainToadlet.Requests.EmptyQueue=Nothing queued
 MainToadlet.Requests.Status.DONE=Done
 MainToadlet.Requests.Status.ERROR=Error
+MainToadlet.Requests.Status.NONE=None
 MainToadlet.Requests.Status.RUNNING=Running
 MainToadlet.Requests.Type.FILE=File
 MainToadlet.Requests.Type.INSERT=Upload
