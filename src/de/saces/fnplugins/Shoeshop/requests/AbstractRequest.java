@@ -14,7 +14,7 @@ public abstract class AbstractRequest<T> implements ClientEventListener, Request
 	public enum STATUS { NONE, RUNNING, DONE, ERROR };
 	public enum TYPE { FILE, SITE, INSERT };
 
-	protected SplitfileProgressEvent lastProgress;
+	private SplitfileProgressEvent _lastProgress;
 	private final String _identifier;
 	private Exception _lastError;
 
@@ -38,7 +38,7 @@ public abstract class AbstractRequest<T> implements ClientEventListener, Request
 	@Override
 	public void receive(ClientEvent ce, ObjectContainer maybeContainer, ClientContext context) {
 		if (ce instanceof SplitfileProgressEvent) {
-			lastProgress = (SplitfileProgressEvent) ce;
+			_lastProgress = (SplitfileProgressEvent) ce;
 			return;
 		}
 		//System.out.println(ce);
@@ -66,8 +66,8 @@ public abstract class AbstractRequest<T> implements ClientEventListener, Request
 
 	public String getRequestInfo() {
 		StringBuilder sb = new StringBuilder();
-		if (lastProgress != null)
-			sb.append(lastProgress.getDescription());
+		if (_lastProgress != null)
+			sb.append(_lastProgress.getDescription());
 		return sb.toString();
 	}
 
