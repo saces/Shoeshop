@@ -348,7 +348,7 @@ public class MainToadlet extends WebInterfaceToadlet {
 	private HTMLNode makeProgressCell(AbstractRequest<?> req) {
 		HTMLNode cell = new HTMLNode("td");
 		if (req.isRunning()) {
-			cell.addChild("#", req.getRequestInfo());
+			cell.addChild("%", req.getRequestInfo());
 		} else if (req.isError()) {
 			cell.addChild("#", req.getErrorInfo());
 		} else {

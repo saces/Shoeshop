@@ -7,6 +7,7 @@ import freenet.client.events.ClientEvent;
 import freenet.client.events.ClientEventListener;
 import freenet.client.events.SplitfileProgressEvent;
 import freenet.node.RequestClient;
+import freenet.support.HTMLEncoder;
 import freenet.support.api.Bucket;
 
 public abstract class AbstractRequest<T> implements ClientEventListener, RequestClient {
@@ -64,10 +65,14 @@ public abstract class AbstractRequest<T> implements ClientEventListener, Request
 		// ignore
 	}
 
+	/**
+	 * @return String The returning string is passed as is, so it can contain tags (&lt;br /&gt; for example) and you have to HTMLEncode yourself
+	 */
 	public String getRequestInfo() {
 		StringBuilder sb = new StringBuilder();
-		if (_lastProgress != null)
-			sb.append(_lastProgress.getDescription());
+		if (_lastProgress != null) {
+			HTMLEncoder.encodeToBuffer(_lastProgress.getDescription(), sb);
+		}
 		return sb.toString();
 	}
 
