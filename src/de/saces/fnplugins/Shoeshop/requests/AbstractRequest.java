@@ -15,7 +15,7 @@ public abstract class AbstractRequest<T> implements ClientEventListener, Request
 	public enum STATUS { NONE, RUNNING, DONE, ERROR };
 	public enum TYPE { FILE, SITE, INSERT };
 
-	private SplitfileProgressEvent _lastProgress;
+	protected SplitfileProgressEvent _lastProgress;
 	private final String _identifier;
 	private Exception _lastError;
 
