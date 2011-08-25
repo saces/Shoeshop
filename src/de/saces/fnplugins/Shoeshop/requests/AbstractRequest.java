@@ -123,4 +123,8 @@ public abstract class AbstractRequest<T> implements ClientEventListener, Request
 	public boolean isDone() {
 		return status == STATUS.DONE;
 	}
+
+	public boolean isStarted() {
+		return status != STATUS.NONE;
+	}
 }

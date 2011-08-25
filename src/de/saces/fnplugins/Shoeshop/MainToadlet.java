@@ -298,7 +298,7 @@ public class MainToadlet extends WebInterfaceToadlet {
 			tableRow.addChild(makeTypeCell(req));
 			tableRow.addChild(makeStatusCell(req));
 			tableRow.addChild(makeIDCell(req));
-			if (req.isTypeInsert() || !req.isDone()) {
+			if (req.isTypeInsert() || !req.isStarted()) {
 				tableRow.addChild(makeEmptyCell());
 			} else {
 				tableRow.addChild(makeGrabCell(req));
