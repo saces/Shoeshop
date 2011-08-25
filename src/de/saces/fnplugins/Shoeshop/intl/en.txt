@@ -6,6 +6,7 @@ Common.Remove=Remove
 Common.InvalidFormpassword=The form password is invalid.
 Common.MalformedRequest=Malformed request: Don't know what to do with it.
 Common.NoFileSelected=No file selected.
+Common.NoSuchIdentifier=The given identifier was not found or is invalid.
 Errors.NoFblobFile=Not a valid Fblob file
 HTTP.403.title=Forbidden
 HTTP.404.description=The URI ${URI} was not found.
