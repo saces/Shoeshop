@@ -13,3 +13,4 @@ Fixed upstream (grab/pick 3e66ed5), in theory 1378 should include this ;)
 
 Bah. With 4.6.2 / 4.6.3 I got some html page saved instead the expected fblob.
 Switch Konqueror to use KHtml, this should work.
+[Update] With 4.6.5 same problem.
