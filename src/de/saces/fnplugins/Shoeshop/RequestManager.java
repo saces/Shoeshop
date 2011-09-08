@@ -6,6 +6,7 @@ import java.util.HashMap;
 import de.saces.fnplugins.Shoeshop.requests.AbstractRequest;
 import de.saces.fnplugins.Shoeshop.requests.FileRequest;
 import de.saces.fnplugins.Shoeshop.requests.InsertRequest;
+import de.saces.fnplugins.Shoeshop.requests.SiteRequest;
 
 import freenet.keys.FreenetURI;
 import freenet.l10n.PluginL10n;
@@ -69,6 +70,13 @@ public class RequestManager {
 	public void exportFile(FreenetURI uri) {
 		final String id = uri.toShortString()+'('+System.currentTimeMillis()+')';
 		FileRequest fr = new FileRequest(id, _pluginContext);
+		_requests.put(id, fr);
+		fr.start(uri);
+	}
+
+	public void exportSite(FreenetURI uri) {
+		final String id = uri.toShortString()+'('+System.currentTimeMillis()+')';
+		SiteRequest fr = new SiteRequest(id, _pluginContext);
 		_requests.put(id, fr);
 		fr.start(uri);
 	}

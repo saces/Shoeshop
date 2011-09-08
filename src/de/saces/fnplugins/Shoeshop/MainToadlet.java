@@ -112,6 +112,12 @@ public class MainToadlet extends WebInterfaceToadlet {
 			}
 			return null;
 		}
+		if (request.isPartSet(CMD_SITEEXPORT)) {
+			FreenetURI uri = checkParamURI(request, errors);
+			checkURINonUSK(uri, errors);
+			_requestManager.exportSite(uri);
+			return null;
+		}
 		if (request.isPartSet(CMD_FILEEXPORT)) {
 			FreenetURI uri = checkParamURI(request, errors);
 			_requestManager.exportFile(uri);
@@ -133,6 +139,20 @@ public class MainToadlet extends WebInterfaceToadlet {
 		}
 		errors.add(_("Common.MalformedRequest"));
 		return null;
+	}
+
+	private void checkURIUSK(FreenetURI uri, List<String> errors) throws MethodHandlerError {
+		if (!uri.isUSK()) {
+			errors.add(_("Common.URImustbeUSK"));
+			throw new MethodHandlerError();
+		}
+	}
+
+	private void checkURINonUSK(FreenetURI uri, List<String> errors) throws MethodHandlerError {
+		if (uri.isUSK()) {
+			errors.add(_("Common.USKmustbeSSK", "URI", uri.sskForUSK().toString()));
+			throw new MethodHandlerError();
+		}
 	}
 
 	private FreenetURI checkParamURI(HTTPRequest request, List<String> errors) throws MethodHandlerError {
@@ -197,9 +217,9 @@ public class MainToadlet extends WebInterfaceToadlet {
 		HTMLNode form = pluginContext.pluginRespirator.addFormChild(boxContent, path(), "uriForm");
 		form.addChild("#", _("MainToadlet.SiteURI"));
 		form.addChild("#", "\u00a0");
-		form.addChild("input", new String[] { "type", "name", "size", "disabled" }, new String[] { "text", PARAM_URI, URI_WIDTH, "disabled" });
+		form.addChild("input", new String[] { "type", "name", "size" }, new String[] { "text", PARAM_URI, URI_WIDTH });
 		form.addChild("#", "\u00a0");
-		form.addChild("input", new String[] { "type", "name", "value", "disabled" }, new String[] { "submit", CMD_SITEEXPORT, _("Common.Export"), "disabled" });
+		form.addChild("input", new String[] { "type", "name", "value" }, new String[] { "submit", CMD_SITEEXPORT, _("Common.Export") });
 		return outerBox;
 	}
 
