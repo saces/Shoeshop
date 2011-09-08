@@ -39,6 +39,8 @@ public class FileRequest extends AbstractRequest<FreenetURI> implements ClientGe
 	public void start(FreenetURI uri) {
 		FetchContext fCtx = new FetchContext(_pluginContext.hlsc.getFetchContext(), FetchContext.IDENTICAL_MASK, false, null);
 		fCtx.eventProducer.addEventListener(this);
+		fCtx.maxNonSplitfileRetries = -1;
+		fCtx.maxSplitfileBlockRetries = -1;
 		try {
 			_result = _pluginContext.clientCore.tempBucketFactory.makeBucket(-1);
 		} catch (IOException e) {
