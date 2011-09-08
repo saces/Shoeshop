@@ -1,6 +1,12 @@
 Shoeshop
  A plugin for freenet
 
+Please report any output from Shoeshop at console/wrapper.log and loglevel ERROR.
+
+Requirements:
+
+Freenet #1403
+
 Known Issues
 ------------
 
