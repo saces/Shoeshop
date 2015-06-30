@@ -5,8 +5,6 @@ import java.util.HashMap;
 import java.util.Map.Entry;
 import java.util.Vector;
 
-import com.db4o.ObjectContainer;
-
 import freenet.client.FetchContext;
 import freenet.client.FetchException;
 import freenet.client.FetchResult;
@@ -18,10 +16,12 @@ import freenet.client.async.ClientGetCallback;
 import freenet.client.async.ClientGetter;
 import freenet.client.async.SnoopMetadata;
 import freenet.keys.FreenetURI;
+import freenet.node.RequestClient;
 import freenet.node.RequestStarter;
 import freenet.support.HTMLEncoder;
 import freenet.support.Logger;
 import freenet.support.api.Bucket;
+import freenet.support.io.ResumeFailedException;
 import freenet.support.plugins.helpers1.PluginContext;
 
 public class SiteRequest extends AbstractRequest<FreenetURI> implements ClientGetCallback {
@@ -37,8 +37,7 @@ public class SiteRequest extends AbstractRequest<FreenetURI> implements ClientGe
 		Metadata _meta;
 
 		@Override
-		public boolean snoopMetadata(Metadata meta, ObjectContainer container,
-				ClientContext context) {
+		public boolean snoopMetadata(Metadata meta, ClientContext context) {
 			if (meta.isSimpleManifest()) {
 				_meta = meta;
 				return true;
@@ -59,7 +58,7 @@ public class SiteRequest extends AbstractRequest<FreenetURI> implements ClientGe
 		@Override
 		public void kill() {
 			if (__get != null) {
-				__get.cancel(null, _pluginContext.clientCore.clientContext);
+				__get.cancel(_pluginContext.clientCore.clientContext);
 				__get = null;
 			}
 		}
@@ -70,9 +69,9 @@ public class SiteRequest extends AbstractRequest<FreenetURI> implements ClientGe
 			fCtx.eventProducer.addEventListener(this);
 			fCtx.maxNonSplitfileRetries = -1;
 			fCtx.maxSplitfileBlockRetries = -1;
-			__get = new ClientGetter(this, uri, fCtx, RequestStarter.BULK_SPLITFILE_PRIORITY_CLASS, this, null, _result, true, null);
+			__get = new ClientGetter(this, uri, fCtx, RequestStarter.BULK_SPLITFILE_PRIORITY_CLASS, null, _result, true, null);
 			try {
-				__get.start(null, _pluginContext.clientCore.clientContext);
+				__get.start(_pluginContext.clientCore.clientContext);
 				setStatusRunning();
 			} catch (FetchException e) {
 				setStatusError(e);
@@ -92,14 +91,14 @@ public class SiteRequest extends AbstractRequest<FreenetURI> implements ClientGe
 		}
 
 		@Override
-		public void onSuccess(FetchResult result, ClientGetter state, ObjectContainer container) {
+		public void onSuccess(FetchResult result, ClientGetter state) {
 			__get = null;
 			removeMe();
 			trySetStatusSuccess();
 		}
 
 		@Override
-		public void onFailure(FetchException e, ClientGetter state, ObjectContainer container) {
+		public void onFailure(FetchException e, ClientGetter state) {
 //			e.printStackTrace();
 //			if (e.mode == FetchException.TOO_MANY_PATH_COMPONENTS) {
 //				System.out.println("Retry: "+e.newURI.toString());
@@ -112,8 +111,23 @@ public class SiteRequest extends AbstractRequest<FreenetURI> implements ClientGe
 		public String getRequestInfo() {
 			return _lastProgress.getDescription();
 		}
-	}
 
+		@Override
+		public void onResume(ClientContext context)
+				throws ResumeFailedException {
+			// TODO Auto-generated method stub
+			
+		}
+
+		@Override
+		public RequestClient getRequestClient() {
+			// TODO Auto-generated method stub
+			return null;
+		}
+	}
+	byte a = 0x0A;
+	byte b = 0x0B;
+	int c = (a << 8) | b;
 	private Vector<SubFileRequest> _requests;
 	private ClientGetter _rootGetter;
 	private final PluginContext _pluginContext;
@@ -131,7 +145,7 @@ public class SiteRequest extends AbstractRequest<FreenetURI> implements ClientGe
 	@Override
 	public synchronized void kill() {
 		_killed = true;
-		_rootGetter.cancel(null, _pluginContext.clientCore.clientContext);
+		_rootGetter.cancel(_pluginContext.clientCore.clientContext);
 		for (SubFileRequest req : _requests) {
 			req.kill();
 		}
@@ -146,11 +160,11 @@ public class SiteRequest extends AbstractRequest<FreenetURI> implements ClientGe
 		fCtx.maxNonSplitfileRetries = -1;
 		fCtx.maxSplitfileBlockRetries = -1;
 		_result = new BinaryBlobWriter(_pluginContext.clientCore.tempBucketFactory);
-		_rootGetter = new ClientGetter(this, uri, fCtx, RequestStarter.BULK_SPLITFILE_PRIORITY_CLASS, this, null, _result, true, null);
+		_rootGetter = new ClientGetter(this, uri, fCtx, RequestStarter.BULK_SPLITFILE_PRIORITY_CLASS, null, _result, true, null);
 		_ms = new MetaSnoop();
 		_rootGetter.setMetaSnoop(_ms);
 		try {
-			_rootGetter.start(null, _pluginContext.clientCore.clientContext);
+			_rootGetter.start(_pluginContext.clientCore.clientContext);
 			setStatusRunning();
 		} catch (FetchException e) {
 			setStatusError(e);
@@ -179,16 +193,15 @@ public class SiteRequest extends AbstractRequest<FreenetURI> implements ClientGe
 	}
 
 	@Override
-	public void onSuccess(FetchResult result, ClientGetter state,
-			ObjectContainer container) {
+	public void onSuccess(FetchResult result, ClientGetter state) {
 		throw new UnsupportedOperationException();
 		// TODO Auto-generated method stub
 		
 	}
 
 	@Override
-	public void onFailure(FetchException e, ClientGetter state, ObjectContainer container) {
-		if (e.mode == FetchException.CANCELLED && !_killed) {
+	public void onFailure(FetchException e, ClientGetter state) {
+		if (e.mode == FetchException.FetchExceptionMode.CANCELLED && !_killed) {
 			if (_ms._meta != null) {
 				parseMetadata(_ms._meta.getDocuments(), "/", _uri.setMetaString(null));
 				trySetStatusSuccess();
@@ -265,5 +278,15 @@ public class SiteRequest extends AbstractRequest<FreenetURI> implements ClientGe
 			HTMLEncoder.encodeToBuffer(req.getRequestInfo(), sb);
 		}
 		return sb.toString();
+	}
+
+	@Override
+	public void onResume(ClientContext context) throws ResumeFailedException {
+		// TODO Auto-generated method stub
+	}
+
+	@Override
+	public RequestClient getRequestClient() {
+		return this;
 	}
 }

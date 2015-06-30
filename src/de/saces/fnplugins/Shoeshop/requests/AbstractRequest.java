@@ -1,7 +1,5 @@
 package de.saces.fnplugins.Shoeshop.requests;
 
-import com.db4o.ObjectContainer;
-
 import freenet.client.async.ClientContext;
 import freenet.client.events.ClientEvent;
 import freenet.client.events.ClientEventListener;
@@ -32,12 +30,7 @@ public abstract class AbstractRequest<T> implements ClientEventListener, Request
 	public abstract Bucket getResult();
 
 	@Override
-	public void onRemoveEventProducer(ObjectContainer container) {
-		new Exception("TODO").printStackTrace();
-	}
-
-	@Override
-	public void receive(ClientEvent ce, ObjectContainer maybeContainer, ClientContext context) {
+	public void receive(ClientEvent ce, ClientContext context) {
 		if (ce instanceof SplitfileProgressEvent) {
 			_lastProgress = (SplitfileProgressEvent) ce;
 			return;
@@ -52,17 +45,8 @@ public abstract class AbstractRequest<T> implements ClientEventListener, Request
 	}
 
 	@Override
-	public void removeFrom(ObjectContainer container) {
-		throw new UnsupportedOperationException();
-	}
-
-	@Override
 	public boolean realTimeFlag() {
 		return true;
-	}
-
-	public void onMajorProgress(@SuppressWarnings("unused") ObjectContainer container) {
-		// ignore
 	}
 
 	/**
