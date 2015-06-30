@@ -109,6 +109,9 @@ public class SiteRequest extends AbstractRequest<FreenetURI> implements ClientGe
 
 		@Override
 		public String getRequestInfo() {
+			if (_lastProgress == null) {
+				return "";
+			}
 			return _lastProgress.getDescription();
 		}
 
@@ -121,10 +124,10 @@ public class SiteRequest extends AbstractRequest<FreenetURI> implements ClientGe
 
 		@Override
 		public RequestClient getRequestClient() {
-			// TODO Auto-generated method stub
-			return null;
+			return this;
 		}
 	}
+
 	byte a = 0x0A;
 	byte b = 0x0B;
 	int c = (a << 8) | b;
