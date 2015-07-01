@@ -33,7 +33,7 @@ public class InsertRequest extends AbstractRequest<Bucket> implements ClientPutC
 		iCtx.maxInsertRetries = 2;
 
 		_put = new ClientPutter(this, (RandomAccessBucket) data, FreenetURI.EMPTY_CHK_URI, null, iCtx, RequestStarter.BULK_SPLITFILE_PRIORITY_CLASS, false,
-				null, false, _pluginContext.clientCore.clientContext, null, 0);
+				null, true, _pluginContext.clientCore.clientContext, null, 0);
 		try {
 			_put.start(false, _pluginContext.clientCore.clientContext);
 			setStatusRunning();
