@@ -86,7 +86,10 @@ public class SiteRequest extends AbstractRequest<FreenetURI> implements ClientGe
 		}
 
 		private void removeMe() {
-			boolean result = _requests.remove(this);
+			boolean result;
+			synchronized (_requests) {
+				result = _requests.remove(this);
+			}
 			if (!result) new Exception("Was Not in list!").printStackTrace();
 		}
 
@@ -149,8 +152,10 @@ public class SiteRequest extends AbstractRequest<FreenetURI> implements ClientGe
 	public synchronized void kill() {
 		_killed = true;
 		_rootGetter.cancel(_pluginContext.clientCore.clientContext);
-		for (SubFileRequest req : _requests) {
-			req.kill();
+		synchronized (_requests) {
+			for (SubFileRequest req : _requests) {
+				req.kill();
+			}
 		}
 		//_requests.clear();
 	}
