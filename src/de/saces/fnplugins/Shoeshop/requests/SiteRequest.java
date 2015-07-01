@@ -99,10 +99,10 @@ public class SiteRequest extends AbstractRequest<FreenetURI> implements ClientGe
 
 		@Override
 		public void onFailure(FetchException e, ClientGetter state) {
-//			e.printStackTrace();
-//			if (e.mode == FetchException.TOO_MANY_PATH_COMPONENTS) {
-//				System.out.println("Retry: "+e.newURI.toString());
-//			}
+			e.printStackTrace();
+			if (e.mode == FetchException.FetchExceptionMode.TOO_MANY_PATH_COMPONENTS) {
+				System.out.println("Retry: "+e.newURI.toString());
+			}
 			__get = null;
 			removeMe();
 		}
